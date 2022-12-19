@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="wrap_content">
+
+    <androidx.appcompat.widget.Toolbar
+        android:elevation="10dp"
+        android:id="@+id/customToolbar"
+        app:navigationIconTint="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/purple_500"
+        app:navigationIcon="@drawable/ic_launcher_foreground"
+        app:title="@string/app_name"
+        app:titleTextColor="#FFFFFF" />
+
+</LinearLayout>

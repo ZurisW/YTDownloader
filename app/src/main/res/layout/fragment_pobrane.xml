@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.PobraneFragment">
+
+    <LinearLayout
+        android:layout_marginVertical="70dp"
+        android:id="@+id/Tips"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/purple_200"
+        android:padding="10.0dip"
+        android:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pobrane"
+                android:textColor="@color/white"
+                android:textSize="15.0sp" />
+
+    </LinearLayout>
+
+</FrameLayout>
