@@ -1,19 +1,30 @@
 package com.example.ytdownloader.fragments
 
+
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.VideoView
+import androidx.fragment.app.Fragment
 import com.example.ytdownloader.R
-import com.example.ytdownloader.databinding.ActivityMainBinding
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
+
+var selectedUri: Uri? = null
+var trimvideo: ImageView? = null
+var videoView: VideoView? = null
 
 /**
  * A simple [Fragment] subclass.
@@ -24,8 +35,6 @@ class HomeFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-
-    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,17 +74,69 @@ class HomeFragment : Fragment() {
             }
     }
 
+    private fun openVideo() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        intent.type = "video/*"
+        startActivityForResult(intent, 100)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == 100) {
+            if (data != null) {
+                selectedUri = data.data
+            }
+            videoView?.setVideoURI(selectedUri);
+            videoView?.start();
+        }
+    }
+
+//    fun initialize() {
+//        val ffmpeg = FFmpeg.getInstance(ctx.applicationContext)
+//        try {
+//            ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
+//                override fun onFinish() {
+//                    super.onFinish()
+//                }
+//
+//                override fun onSuccess() {
+//                    super.onSuccess()
+//                }
+//
+//                override fun onFailure() {
+//                    super.onFailure()
+//                }
+//
+//                override fun onStart() {
+//                    super.onStart()
+//                }
+//            })
+//        } catch (e: FFmpegNotSupportedException) {
+//            Log.e("FFmpeg", "Your device does not support FFmpeg")
+//        }
+//    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
 
         view.findViewById<Button>(R.id.btn_download).setOnClickListener {
             // Get the text to send from the edit text
-            val editText = view?.findViewById<EditText>(R.id.link_url)
+            val editText = view.findViewById<EditText>(R.id.link_url)
             val text = editText?.text.toString()
 
             val videoFragment = VideoFragment()
+
+            val args = Bundle()
+            args.putString("YourKey", text)
+            videoFragment.arguments = args
+
             parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, videoFragment).commit()
         }
+
+        view.findViewById<Button>(R.id.btn_file).setOnClickListener {
+            openVideo()
+        }
+
     }
 }
