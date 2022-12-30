@@ -2,27 +2,23 @@ package com.example.ytdownloader
 
 
 import android.Manifest
-import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.MenuItem
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import com.blackbox.ffmpeg.examples.dialogs.AudioDialog
+import com.blackbox.ffmpeg.examples.dialogs.VideoDialog
+import com.blackbox.ffmpeg.examples.tools.OutputType
+import com.blackbox.ffmpeg.examples.utils.Utils
 import com.example.ytdownloader.callback.FFMpegCallback
-import com.example.ytdownloader.databinding.ActivityMainBinding
 import com.example.ytdownloader.fragments.HomeFragment
 import com.example.ytdownloader.fragments.PobraneFragment
 import com.example.ytdownloader.fragments.SettingsFragment
-import com.example.ytdownloader.fragments.VideoFragment
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.File
@@ -30,8 +26,32 @@ import java.io.File
 
 class MainActivity : AppCompatActivity(), FFMpegCallback {
 
-    private lateinit var binding: ActivityMainBinding
     private val TAG = "MainActivity"
+    private var context: Context? = null
+
+    lateinit var audio: File
+    lateinit var audio2: File
+    lateinit var audio3: File
+    lateinit var video: File
+    lateinit var video2: File
+    lateinit var videoSmall1: File
+    lateinit var images: Array<File>
+    lateinit var font: File
+
+
+    interface ProgressPublish {
+        fun onProgress(progress: String)
+
+        fun onDismiss()
+    }
+
+    companion object {
+        lateinit var onProgress: ProgressPublish
+
+        fun setProgressListener(onProgress: ProgressPublish) {
+            this.onProgress = onProgress
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,7 +109,6 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         when {
             type.equals(OutputType.TYPE_VIDEO) -> VideoDialog.show(supportFragmentManager, convertedFile)
             type.equals(OutputType.TYPE_AUDIO) -> AudioDialog.show(supportFragmentManager, convertedFile)
-            type.equals(OutputType.TYPE_GIF) -> GIFDialog.show(supportFragmentManager, convertedFile)
         }
     }
 
@@ -115,6 +134,23 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         onProgress.run {
             onDismiss()
         }
+    }
+
+    private fun setUpResources() {
+        //Copy Audio, Video & Images from resources to Storage Directory
+        audio = Utils.copyFileToExternalStorage(R.raw.audio, "audio.mp3", applicationContext)
+        audio2 = Utils.copyFileToExternalStorage(R.raw.audio2, "audio2.mp3", applicationContext)
+        audio3 = Utils.copyFileToExternalStorage(R.raw.audio3, "audio3.mp3", applicationContext)
+        video = Utils.copyFileToExternalStorage(R.raw.video, "video.mp4", applicationContext)
+        video2 = Utils.copyFileToExternalStorage(R.raw.video2, "video2.mp4", applicationContext)
+        videoSmall1 = Utils.copyFileToExternalStorage(R.raw.video_small_1, "video_small_1.mp4", applicationContext)
+        font = Utils.copyFileToExternalStorage(R.font.roboto_black, "myFont.ttf", applicationContext)
+        images = arrayOf(
+            Utils.copyFileToExternalStorage(R.drawable.image1, "image1.png", applicationContext)
+            , Utils.copyFileToExternalStorage(R.drawable.image2, "image2.png", applicationContext)
+            , Utils.copyFileToExternalStorage(R.drawable.image3, "image3.png", applicationContext)
+            , Utils.copyFileToExternalStorage(R.drawable.image4, "image4.png", applicationContext)
+            , Utils.copyFileToExternalStorage(R.drawable.image5, "image5.png", applicationContext))
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
