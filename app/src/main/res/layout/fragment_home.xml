@@ -79,7 +79,7 @@
             android:autofillHints="Całe te"
             android:background="@color/purple_500"
             android:hint="Podaj ścieżkę do filmu"
-            android:inputType="text"
+            android:inputType="textUri"
             android:padding="14dp"
             android:singleLine="true"
             android:textColorHint="@color/purple_700" />

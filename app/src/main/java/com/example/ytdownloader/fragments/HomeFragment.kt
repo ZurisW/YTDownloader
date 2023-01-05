@@ -6,15 +6,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.VideoView
+import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.ytdownloader.R
+import com.example.ytdownloader.databinding.ActivityMainBinding
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -22,6 +21,7 @@ import com.example.ytdownloader.R
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
+private lateinit var binding: ActivityMainBinding
 var selectedUri: Uri? = null
 var trimvideo: ImageView? = null
 var videoView: VideoView? = null
@@ -125,10 +125,20 @@ class HomeFragment : Fragment() {
             val editText = view.findViewById<EditText>(R.id.link_url)
             val text = editText?.text.toString()
 
+            if (text.isEmpty()) {
+               Toast.makeText(
+                    this@HomeFragment.activity,
+                    "Podaj adres filmu z YouTube",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
             val videoFragment = VideoFragment()
 
             val args = Bundle()
-            args.putString("YourKey", text)
+            args.putString("yturl", text)
             videoFragment.arguments = args
 
             parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, videoFragment).commit()
