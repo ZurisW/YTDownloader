@@ -100,31 +100,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-//    fun initialize() {
-//        val ffmpeg = FFmpeg.getInstance(ctx.applicationContext)
-//        try {
-//            ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
-//                override fun onFinish() {
-//                    super.onFinish()
-//                }
-//
-//                override fun onSuccess() {
-//                    super.onSuccess()
-//                }
-//
-//                override fun onFailure() {
-//                    super.onFailure()
-//                }
-//
-//                override fun onStart() {
-//                    super.onStart()
-//                }
-//            })
-//        } catch (e: FFmpegNotSupportedException) {
-//            Log.e("FFmpeg", "Your device does not support FFmpeg")
-//        }
-//    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 

@@ -1,28 +1,33 @@
 package com.example.ytdownloader.fragments
 
-import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.ContentResolver
 import android.content.Context
-import android.content.pm.PackageManager
+import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.annotation.Nullable
 import androidx.fragment.app.Fragment
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.ReturnCode
 import com.example.ytdownloader.R
-import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.util.*
+
 
 class VideoFragment : Fragment() {
     private lateinit var videoView1: VideoView
-    private lateinit var ffmpeg: FFmpeg
+    private lateinit var ffmpeg: FFmpegKit
     private lateinit var audioManager: AudioManager
 
     val Any.TAG: String
@@ -33,7 +38,8 @@ class VideoFragment : Fragment() {
 
     // Set the output file path (nie działa bo permisje od androida 10 w góre umarły)
 //    val outputPath = "/storage/emulated/0/Movies/my_video.mp4"
-    val outputPath = context?.filesDir.toString() + "/my_video.mp4"
+//    val outputPath = context?.filesDir.toString() + "/my_video.mp4"
+//    val outputPath = "${context!!.filesDir}/my_video.mp4"
     val startMs = "00:00:03"
     val endMs = "00:00:05"
 
@@ -54,17 +60,6 @@ class VideoFragment : Fragment() {
 
         // Initialize the VideoView and FFmpeg
         videoView1 = view.findViewById(R.id.VideoView)
-        ffmpeg = FFmpeg.getInstance(activity)
-
-        // Load the FFmpeg binary
-        ffmpeg.loadBinary(object : LoadBinaryResponseHandler() {
-            override fun onStart() {}
-            override fun onFailure() {}
-            override fun onSuccess() {}
-            override fun onFinish() {}
-        })
-
-        Runtime.getRuntime().exec("chmod -R 777 " + context!!.filesDir +"/ffmpeg")
 
         // Set the video path
 //        val videoPath = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
@@ -109,61 +104,128 @@ class VideoFragment : Fragment() {
 //
 //            }
 
+//          val outputPath = "${context!!.filesDir}/my_video.mp4"
+
+            val outputPath = Uri.parse(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
+                        + File.separator + "my_video.mp4"
+            )
+
             Log.d(TAG, "startTrim: src: " + selectedUri.toString())
             Log.d(TAG, "startTrim: dest: $outputPath")
             Log.d(TAG, "startTrim: startMs: " + startMs)
             Log.d(TAG, "startTrim: endMs: " + endMs)
-            trimVideo(selectedUri.toString(), outputPath, startMs, endMs)
+
+            trimVideo(createCopyAndReturnRealPath(context!!, selectedUri!!)!!, outputPath, startMs, endMs)
         }
     }
 
-    private fun trimVideo(inputFile: String, outputFile: String, startTime: String, duration: String) {
+    private fun trimVideo(inputFile: String, outputFile: Uri, startTime: String, endTime: String) {
         val cmd = arrayOf(
+//          overwrite file if exists całe te
+            "-y",
             "-i",
             inputFile,
             "-ss",
             startTime,
-            "-t",
-            duration,
-            "-c",
-            "copy",
+            "-to",
+            endTime,
+            "-c:v mpeg4",
             outputFile
         )
-        FFmpeg.getInstance(context).execute(cmd, object : ExecuteBinaryResponseHandler() {
-            override fun onSuccess(message: String) {
-                Toast.makeText(
-                    this@VideoFragment.activity,
-                    "Udało się strimmować video!",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            override fun onFailure(message: String) {
-                Toast.makeText(
-                    this@VideoFragment.activity,
-                    "Nic się nie udało, wszystko wybuchło, jezus maria",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        })
+        Log.d(TAG, "COMMAND: " + cmd.contentToString().replace(",", "").replace("[","").replace("]",""))
+        val session = FFmpegKit.execute(cmd.contentToString().replace(",", "").replace("[","").replace("]",""))
+        if (ReturnCode.isSuccess(session.returnCode)) {
+            Log.d(TAG, "Successful FFmpegKit command execute")
+            openDirectory()
+        } else if (ReturnCode.isCancel(session.returnCode)) {
+            Log.d(TAG, "Cancelled FFmpegKit :(")
+        } else {
+            Log.d(
+                TAG,
+                String.format(
+                    "Command failed with state %s and rc %s.%s",
+                    session.state,
+                    session.returnCode,
+                    session.failStackTrace
+                )
+            )
+        }
     }
 
-    fun muteAudio(inputFile: String, outputFile: String) {
-        val cmd = arrayOf(
-            "-i",
-            inputFile,
-            "-an",
-            outputFile
+    @Nullable
+    fun createCopyAndReturnRealPath(
+        context: Context, uri: Uri
+    ): String? {
+        val contentResolver: ContentResolver = context.contentResolver ?: return null
+
+        // Create file path inside app's data dir
+        val filePath: String = (context.applicationInfo.dataDir + File.separator
+                + System.currentTimeMillis())
+        val file = File(filePath)
+        try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val outputStream: OutputStream = FileOutputStream(file)
+            val buf = ByteArray(1024)
+            var len: Int
+            while (inputStream.read(buf).also { len = it } > 0) outputStream.write(buf, 0, len)
+            outputStream.close()
+            inputStream.close()
+        } catch (ignore: IOException) {
+            return null
+        }
+        return file.absolutePath
+    }
+
+    private fun openDirectory() {
+        val directoryUri = Uri.parse(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
+                    + File.separator
         )
-        FFmpeg.getInstance(context).execute(cmd, object : ExecuteBinaryResponseHandler() {
-            override fun onSuccess(message: String) {
-                // Muting succeeded, do something here
-            }
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(directoryUri, "resource/folder")
+        }
 
-            override fun onFailure(message: String) {
-                // Muting failed, do something here
+        // Try to start an activity for the intent
+        try {
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // No app can handle the intent. Use the built-in "Files" app instead.
+            val builtInIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(directoryUri, "resource/folder")
+                setPackage("com.android.documentsui")
             }
-        })
+            try {
+                startActivity(builtInIntent)
+            } catch (e: ActivityNotFoundException) {
+                // The built-in "Files" app is not available. Show an error message.
+                Toast.makeText(
+                    this@VideoFragment.activity,
+                    "Brak aplikacji do otwarcia folderu 'Download' z plikiem!",
+                    Toast.LENGTH_LONG
+                ).show()
+                val homeFragment = HomeFragment()
+                parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, homeFragment).commit()
+            }
+        }
     }
+
+//    fun muteAudio(inputFile: String, outputFile: String) {
+//        val cmd = arrayOf(
+//            "-i",
+//            inputFile,
+//            "-an",
+//            outputFile
+//        )
+//        FFmpeg.getInstance(context).execute(cmd, object : ExecuteBinaryResponseHandler() {
+//            override fun onSuccess(message: String) {
+//                // Muting succeeded, do something here
+//            }
+//
+//            override fun onFailure(message: String) {
+//                // Muting failed, do something here
+//            }
+//        })
+//    }
 
 }

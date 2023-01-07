@@ -46,8 +46,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.4.1'
     implementation 'androidx.navigation:navigation-ui-ktx:2.4.1'
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.writingminds:FFmpegAndroid:0.3.2'
+    implementation 'com.arthenica:ffmpeg-kit-full:5.1'
     implementation 'com.google.android.exoplayer:exoplayer:2.18.2'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
