@@ -75,19 +75,28 @@ class HomeFragment : Fragment() {
     }
 
     private fun openVideo() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        val intent = Intent()
         intent.type = "video/*"
+        intent.action = Intent.ACTION_GET_CONTENT
         startActivityForResult(intent, 100)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == 100) {
-            if (data != null) {
+            if (data != null && data.data != null) {
                 selectedUri = data.data
             }
-            videoView?.setVideoURI(selectedUri);
-            videoView?.start();
+
+            val text = selectedUri.toString()
+
+            val videoFragment = VideoFragment()
+
+            val args = Bundle()
+            args.putString("url", text)
+            videoFragment.arguments = args
+
+            parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, videoFragment).commit()
         }
     }
 
@@ -125,15 +134,15 @@ class HomeFragment : Fragment() {
             val editText = view.findViewById<EditText>(R.id.link_url)
             val text = editText?.text.toString()
 
-            if (text.isEmpty()) {
-               Toast.makeText(
-                    this@HomeFragment.activity,
-                    "Podaj adres filmu z YouTube",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                return@setOnClickListener
-            }
+//            if (text.isEmpty()) {
+//               Toast.makeText(
+//                    this@HomeFragment.activity,
+//                    "Podaj adres filmu z YouTube",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//
+//                return@setOnClickListener
+//            }
 
             val videoFragment = VideoFragment()
 

@@ -1,47 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/videoFrag"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.VideoFragment">
 
-    <LinearLayout
-        android:id="@+id/bruh"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginVertical="70dp"
-        android:background="@color/purple_200"
-        android:orientation="horizontal"
-        android:padding="10.0dip"
-        android:visibility="visible">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/textview"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:id="@+id/bruh"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:textColor="@color/white"
-            android:textSize="17.0sp" />
+            android:layout_marginVertical="70dp"
+            android:background="@color/purple_200"
+            android:orientation="horizontal"
+            android:padding="10.0dip"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@+id/bruh2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="15dp"
+                android:textColor="@color/white"
+                android:textSize="17.0sp" />
 
-    <LinearLayout
-        android:id="@+id/bruh2"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginVertical="170dp"
-        android:layout_marginTop="50dp"
-        android:orientation="vertical"
-        android:padding="10.0dip"
-        android:visibility="visible">
+        </LinearLayout>
 
-    <VideoView
-        android:id="@+id/VideoView"
-        android:layout_width="360dp"
-        android:layout_height="200dp"
-        android:layout_gravity="center" />
+        <LinearLayout
+            android:id="@+id/bruh2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginVertical="0dp"
+            android:orientation="vertical"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@+id/bruh3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bruh">
 
-    </LinearLayout>
+            <VideoView
+                android:id="@+id/VideoView"
+                android:layout_width="360dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bruh3"
+            android:layout_width="413dp"
+            android:layout_height="84dp"
+            android:layout_marginVertical="70dp"
+            android:background="@color/purple_200"
+            android:orientation="horizontal"
+            android:padding="10.0dip"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bruh2">
+
+            <RadioButton
+                android:id="@+id/mute"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Wycisz" />
+
+            <EditText
+                android:id="@+id/starttime"
+                android:layout_width="40dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="time"
+                android:text="Start" />
+
+            <EditText
+                android:id="@+id/stoptime"
+                android:layout_width="40dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="time"
+                android:text="Koniec" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bruh4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="70dp"
+            android:background="@color/purple_200"
+            android:orientation="horizontal"
+            android:padding="10.0dip"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bruh3">
+
+            <Button
+                android:id="@+id/btn_pobierz"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="30dp"
+                android:layout_weight="1"
+                android:background="@color/purple_500"
+                android:padding="5dp"
+                android:text="Pobierz"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>
