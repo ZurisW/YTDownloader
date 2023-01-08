@@ -105,36 +105,45 @@ class VideoFragment : Fragment() {
 //            }
 
 //          val outputPath = "${context!!.filesDir}/my_video.mp4"
-
             val outputPath = Uri.parse(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
                         + File.separator + "my_video.mp4"
             )
 
+            // TODO: zrobilem cmd, trzeba zrobic dobrze starttime i endtime (brak startu to od poczatku video
+            // TODO: endtime to do konca), na sekundy i w formacie 00:00:03 itd, naura
+
+            val cmd = StringBuilder()
+            val path = createCopyAndReturnRealPath(context!!, selectedUri!!)!!
+
+            cmd.append("-y -i $path -c:v mpeg4 ")
+
+            if(view.findViewById<EditText>(R.id.starttime).text.isNotEmpty() && view.findViewById<EditText>(R.id.starttime).text.isNotEmpty()){
+                Log.d(TAG, "startTrim: SEKUNDYYYYYYYYYYYYYYYYYY")
+                cmd.append("-ss $startMs -to $endMs ")
+            }
+
+            if(view.findViewById<RadioButton>(R.id.mute).isChecked){
+                Log.d(TAG, "startTrim: CHECKED CAŁE TEEEEEE")
+                cmd.append("-an ")
+            }
+
+            cmd.append(outputPath)
+
             Log.d(TAG, "startTrim: src: " + selectedUri.toString())
             Log.d(TAG, "startTrim: dest: $outputPath")
-            Log.d(TAG, "startTrim: startMs: " + startMs)
-            Log.d(TAG, "startTrim: endMs: " + endMs)
+            Log.d(TAG, "startTrim: startMs: $startMs")
+            Log.d(TAG, "startTrim: endMs: $endMs")
 
-            trimVideo(createCopyAndReturnRealPath(context!!, selectedUri!!)!!, outputPath, startMs, endMs)
+            Log.d(TAG, "startTrim CMD: $cmd")
+
+            trimVideo(cmd.toString())
         }
     }
 
-    private fun trimVideo(inputFile: String, outputFile: Uri, startTime: String, endTime: String) {
-        val cmd = arrayOf(
-//          overwrite file if exists całe te
-            "-y",
-            "-i",
-            inputFile,
-            "-ss",
-            startTime,
-            "-to",
-            endTime,
-            "-c:v mpeg4",
-            outputFile
-        )
-        Log.d(TAG, "COMMAND: " + cmd.contentToString().replace(",", "").replace("[","").replace("]",""))
-        val session = FFmpegKit.execute(cmd.contentToString().replace(",", "").replace("[","").replace("]",""))
+    private fun trimVideo(cmd: String) {
+
+        val session = FFmpegKit.execute(cmd)
         if (ReturnCode.isSuccess(session.returnCode)) {
             Log.d(TAG, "Successful FFmpegKit command execute")
             openDirectory()
@@ -209,23 +218,5 @@ class VideoFragment : Fragment() {
             }
         }
     }
-
-//    fun muteAudio(inputFile: String, outputFile: String) {
-//        val cmd = arrayOf(
-//            "-i",
-//            inputFile,
-//            "-an",
-//            outputFile
-//        )
-//        FFmpeg.getInstance(context).execute(cmd, object : ExecuteBinaryResponseHandler() {
-//            override fun onSuccess(message: String) {
-//                // Muting succeeded, do something here
-//            }
-//
-//            override fun onFailure(message: String) {
-//                // Muting failed, do something here
-//            }
-//        })
-//    }
 
 }
