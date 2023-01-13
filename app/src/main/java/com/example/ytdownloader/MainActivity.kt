@@ -2,12 +2,16 @@ package com.example.ytdownloader
 
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.DownloadManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
+import android.util.SparseArray
 import android.view.View
 import android.widget.EditText
 import android.widget.MediaController
@@ -22,7 +26,6 @@ import com.example.ytdownloader.fragments.HomeFragment
 import com.example.ytdownloader.fragments.PobraneFragment
 import com.example.ytdownloader.fragments.SettingsFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
@@ -93,4 +96,5 @@ class MainActivity : AppCompatActivity() {
             replace(R.id.fl_wrapper, fragment)
             commit()
         }
+
 }

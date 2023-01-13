@@ -5,8 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.view.Gravity
+import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -109,20 +108,21 @@ class HomeFragment : Fragment() {
             val editText = view.findViewById<EditText>(R.id.link_url)
             val text = editText?.text.toString()
 
-//            if (text.isEmpty()) {
-//               Toast.makeText(
-//                    this@HomeFragment.activity,
-//                    "Podaj adres filmu z YouTube",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//
-//                return@setOnClickListener
-//            }
+            if (text.isEmpty()) {
+               Toast.makeText(
+                    this@HomeFragment.activity,
+                    "Podaj adres filmu z YouTube",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
 
             val videoFragment = VideoFragment()
 
             val args = Bundle()
             args.putString("yturl", text)
+            args.putString("check", "1")
             videoFragment.arguments = args
 
             parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, videoFragment).commit()
