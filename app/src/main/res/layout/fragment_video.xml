@@ -22,16 +22,29 @@
             android:visibility="visible"
             app:layout_constraintBottom_toTopOf="@+id/bruh2"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/textview"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="15dp"
-                android:textColor="@color/white"
-                android:textSize="17.0sp" />
+                android:text="MP4/MP3"
+                android:textAlignment="textEnd" />
+
+            <Switch
+                android:id="@+id/switch3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="3dp"/>
+
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#820E0E"
+                android:spinnerMode="dropdown" />
 
         </LinearLayout>
 
@@ -69,7 +82,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/bruh2">
 
-            <RadioButton
+            <CheckBox
                 android:id="@+id/mute"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -124,6 +137,26 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <FrameLayout
+            android:id="@+id/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#AE000000"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/progressBarText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading video..."
+            android:textColor="@color/purple_200"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/bruh4"
+            app:layout_constraintEnd_toEndOf="@+id/bruh2"
+            app:layout_constraintStart_toStartOf="@+id/bruh2"
+            app:layout_constraintTop_toTopOf="@+id/bruh" />
+
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyle"
@@ -137,11 +170,5 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <FrameLayout
-        android:id="@+id/overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#AE000000"
-        android:visibility="gone" />
 
 </FrameLayout>

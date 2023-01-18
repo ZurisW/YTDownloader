@@ -42,6 +42,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        supportActionBar?.hide()
+
         val homeFragment = HomeFragment()
         val pobraneFragment = PobraneFragment()
         val settingsFragment = SettingsFragment()

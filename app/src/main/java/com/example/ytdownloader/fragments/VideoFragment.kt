@@ -5,11 +5,11 @@ import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.*
 import android.content.pm.PackageManager
-import android.media.AudioManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.util.SparseArray
 import android.view.LayoutInflater
@@ -17,9 +17,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.Nullable
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import at.huber.youtubeExtractor.YouTubeUriExtractor
 import at.huber.youtubeExtractor.YtFile
@@ -30,23 +29,20 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.text.SimpleDateFormat
 import java.util.*
 
 
 class VideoFragment : Fragment() {
     private lateinit var videoView1: VideoView
     private lateinit var download_url: String
+    private lateinit var spinner: Spinner
 
     private val Any.TAG: String
         get() {
             val tag = javaClass.simpleName
             return if (tag.length <= 23) tag else tag.substring(0, 23)
         }
-
-    // Set the output file path (nie działa bo permisje od androida 10 w góre umarły)
-//    val outputPath = "/storage/emulated/0/Movies/my_video.mp4"
-//    val outputPath = context?.filesDir.toString() + "/my_video.mp4"
-//    val outputPath = "${context!!.filesDir}/my_video.mp4"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,24 +55,20 @@ class VideoFragment : Fragment() {
         // Initialize the VideoView and FFmpeg
         videoView1 = view.findViewById(R.id.VideoView)
 
-        // Set the video path
-//        https://www.youtube.com/watch?v=EoaU8duIv90 dziobak
-//        val videoPath = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" rick
-//        val videoPath = "android.resource://"+context!!.packageName+"/"+R.raw.video;
+        spinner = view.findViewById(R.id.spinner)
+        val adapter = ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.spinner_options,
+            R.layout.spinner_item
+        )
+        adapter.setDropDownViewResource(R.layout.spinner_item)
+        spinner.adapter = adapter
 
 
         var videoPath: String?
-//        var downloadUrl = "https://www.youtube.com/watch?v=uJ1VbZyH_g8" kapitan
 
         if(arguments?.getString("check") == "1"){
-
-//          https://www.youtube.com/watch?v=es5IFnOx1VE OD ZMIERZCHU DO ŚWITU CO ROBIMY DYM
-
             downloadVideo(arguments!!.getString("yturl")!!.trim())
-//          downloadVideo("https://www.youtube.com/watch?v=es5IFnOx1VE")
-
-//            videoPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + "ytvid.mp4"
-//            Log.d(TAG, "CMD: (DUPAGUWNO) $videoPath  A W DODATKU " + arguments?.getString("check"))
         } else {
             videoPath = arguments!!.getString("url")
             val uri = Uri.parse(videoPath)
@@ -86,8 +78,6 @@ class VideoFragment : Fragment() {
 
             mediaController.setMediaPlayer(videoView1)
             videoView1.setMediaController(mediaController)
-
-//        val audioManager = requireContext().getSystemService(AudioManager::class.java)
 
             // Set the video URI
             videoView1.setVideoURI(uri)
@@ -103,38 +93,26 @@ class VideoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val value = arguments!!.getString("url")
-
-        view.findViewById<TextView>(R.id.textview)?.text = value
+//        val value = arguments!!.getString("url")
+//
+//        view.findViewById<TextView>(R.id.textview)?.text = value
 
         view.findViewById<Button>(R.id.btn_pobierz).setOnClickListener {
-//            if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                != PackageManager.PERMISSION_GRANTED) {
-//                Toast.makeText(
-//                    this@VideoFragment.activity,
-//                    "Potrzeba permisji do zapisu!",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//            }
+            val connectivityManager = context!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = connectivityManager.activeNetwork
+            val capabilities = connectivityManager.getNetworkCapabilities(network)
+            val isConnected = capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+
+            if (!isConnected) {
+                Toast.makeText(this@VideoFragment.activity, "Brak połączenia z internetem!", Toast.LENGTH_SHORT).show()
+            }
 
             val outputPath = Uri.parse(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
-                        + File.separator + "my_video.mp4"
+                        + File.separator + "my_video"
             )
 
-            // TODO: jak sie kliknie pobierz to zeby prosilo o nazwe filmika
-            // TODO: jednak chyba mi sie nie chce
-            // TODO: wycisz zeby mozna bylo odkliknac bo nie dziala xd I OVERLAY GREY NA HOME
-            // TODO: progress bar buja, przyciski wył, tera jak sie nic nie wpisze w te gówna
-            // TODO: progress bar nie buja, dodac tekst z procentami pod ikonka krecenia sie
-            // TODO: lepszy player do video bo tej zajezdza siusiakiem
-            // TODO: edittexty to zeby od poczatku i do konca robilo i zeby start<=end
-            // TODO: przepisac funkcje moze na nowsza ale tez mi sie nie chce jak dziala
-            // TODO: funkcje moze zrobic z wyswietlania filmu na odtwarzaczu bo sie powtarza
-            // TODO: ale jeden hujas
-
             val cmd = StringBuilder()
-            Log.d(TAG, "CMD: (au au au) $selectedUri")
 
             var path = ""
 
@@ -145,12 +123,18 @@ class VideoFragment : Fragment() {
                path = createCopyAndReturnRealPath(context!!, selectedUri!!)!!
             }
 
-            Log.d(TAG, "CMD: RETURN PATH: $path")
+            cmd.append("-y -i \"$path\" ")
 
-            cmd.append("-y -i \"$path\" -c:v mpeg4 ")
+            if(view.findViewById<Switch>(R.id.switch3).isChecked){
+                cmd.append("-c:a libmp3lame -b:a 256k ")
+            } else {
+                cmd.append("-c:v mpeg4 ")
+            }
+
+
 
             if(view.findViewById<EditText>(R.id.starttime).text.isNotEmpty() && view.findViewById<EditText>(R.id.starttime).text.isNotEmpty()){
-                Log.d(TAG, "startTrim: SEKUNDYYYYYYYYYYYYYYYYYY")
+
                 val pattern = "^((?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d)\$"
                 val patternMs = "^((?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{1,3})\$"
                 val combinedPattern = "($pattern)|($patternMs)"
@@ -158,23 +142,61 @@ class VideoFragment : Fragment() {
                 val startMs = view.findViewById<EditText>(R.id.starttime).text
                 val endMs = view.findViewById<EditText>(R.id.stoptime).text
 
+                val sdf = SimpleDateFormat("HH:mm:ss")
+                val startTime = sdf.parse(startMs.toString())
+                val endTime = sdf.parse(endMs.toString())
+
                 if (startMs.matches(Regex(combinedPattern)) && endMs.matches(Regex(combinedPattern))) {
-                    cmd.append("-ss $startMs -to $endMs ")
+                    if (startTime != null) {
+                        if(startTime.before(endTime)) {
+                            cmd.append("-ss $startMs -to $endMs ")
+                        } else {
+                            Toast.makeText(
+                                this@VideoFragment.activity,
+                                "Start musi byc wiekszy niz stop",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            return@setOnClickListener
+                        }
+                    }
                 } else {
                     Toast.makeText(
                         this@VideoFragment.activity,
                         "Podaj start i end w formacie hh:mm:ss.ms",
                         Toast.LENGTH_LONG
                     ).show()
+                    return@setOnClickListener
                 }
 
             }
 
-            if(view.findViewById<RadioButton>(R.id.mute).isChecked){
-                cmd.append("-an ")
+            if(view.findViewById<Switch>(R.id.switch3).isChecked){
+                // Do nothing, switch is checked
+            } else {
+                if(view.findViewById<Spinner>(R.id.spinner).selectedItem.toString() == "Wybierz rozdzielczosc"){
+                    // Do nothing, switch is checked
+                } else if(view.findViewById<Spinner>(R.id.spinner).selectedItem.toString() == "1080p") {
+                    cmd.append("-vf scale=1920:1080 ")
+                } else if(view.findViewById<Spinner>(R.id.spinner).selectedItem.toString() == "720p") {
+                    cmd.append("-vf scale=1280:720 ")
+                } else if(view.findViewById<Spinner>(R.id.spinner).selectedItem.toString() == "480p") {
+                    cmd.append("-vf scale=854:480 ")
+                }
             }
 
-            cmd.append(outputPath)
+            if(view.findViewById<Switch>(R.id.switch3).isChecked){
+                // Do nothing, switch is checked
+            } else {
+                if(view.findViewById<CheckBox>(R.id.mute).isChecked){
+                    cmd.append("-an ")
+                }
+            }
+
+
+            if(view.findViewById<Switch>(R.id.switch3).isChecked)
+                cmd.append("$outputPath.mp3")
+            else
+                cmd.append("$outputPath.mp4")
 
             Log.d(TAG, "startTrim CMD: $cmd")
 
@@ -186,6 +208,7 @@ class VideoFragment : Fragment() {
         val session = FFmpegKit.execute(cmd)
         if (ReturnCode.isSuccess(session.returnCode)) {
             Log.d(TAG, "Successful FFmpegKit command execute")
+            parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, HomeFragment()).commit()
             openDirectory()
         } else if (ReturnCode.isCancel(session.returnCode)) {
             Log.d(TAG, "Cancelled FFmpegKit :(")
@@ -226,28 +249,11 @@ class VideoFragment : Fragment() {
         return file.absolutePath
     }
 
-    private fun openDirectory() {
-        val directoryUri = Uri.parse(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
-                    + File.separator
-        )
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(directoryUri, "resource/folder")
-        }
-
+    fun openDirectory() {
         // Try to start an activity for the intent
         try {
-            startActivity(intent)
+            startActivity(Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
         } catch (e: ActivityNotFoundException) {
-            // No app can handle the intent. Use the built-in "Files" app instead.
-            val builtInIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(directoryUri, "resource/folder")
-                setPackage("com.android.documentsui")
-            }
-            try {
-                startActivity(builtInIntent)
-            } catch (e: ActivityNotFoundException) {
-                // The built-in "Files" app is not available. Show an error message.
                 Toast.makeText(
                     this@VideoFragment.activity,
                     "Brak aplikacji do otwarcia folderu 'Download' z plikiem!",
@@ -255,7 +261,6 @@ class VideoFragment : Fragment() {
                 ).show()
                 val homeFragment = HomeFragment()
                 parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, homeFragment).commit()
-            }
         }
     }
 
@@ -294,22 +299,58 @@ class VideoFragment : Fragment() {
                             query.setFilterById(downloadId)
                             val c = downloadManager.query(query)
                             if (c.moveToFirst()) {
-                                c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))
-                                val bytesDownloaded = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                                val bytesTotal = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-                                val progress = bytesDownloaded.toFloat() / bytesTotal.toFloat()
-                                val percentage = (progress * 100).toInt()
+                                val status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))
+
+                                if (status == DownloadManager.STATUS_FAILED) {
+                                    Toast.makeText(this@VideoFragment.activity, "Download canceled", Toast.LENGTH_SHORT).show()
+                                    val homeFragment = HomeFragment()
+                                    parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, homeFragment).commit()
+                                }
+
+//                                if (status == DownloadManager.STATUS_PENDING) {
+//                                    // The download is queued, start a timer to check if it stays queued for more than 8 seconds
+//                                    val timer = Timer()
+//                                    timer.schedule(object : TimerTask() {
+//                                        override fun run() {
+//                                            // Check the status of the download again
+//                                            val c2 = downloadManager.query(query)
+//                                            if (c2.moveToFirst()) {
+//                                                val status2 =
+//                                                    c2.getInt(c2.getColumnIndex(DownloadManager.COLUMN_STATUS))
+//                                                if (status2 == DownloadManager.STATUS_PENDING) {
+//                                                    // The download is still queued, cancel it
+//                                                    downloadManager.remove(downloadId)
+//
+//                                                    Toast.makeText(
+//                                                        this@VideoFragment.activity,
+//                                                        "Coś poszło nie tak!",
+//                                                        Toast.LENGTH_SHORT
+//                                                    ).show()
+//                                                    timer.cancel()
+//
+//                                                    val homeFragment = HomeFragment()
+//                                                    parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, homeFragment).commit()
+//                                                }
+//                                            }
+//                                            c2.close()
+//                                        }
+//                                    }, 8000) // Check the status every 8 seconds
+//                                }
+
                                 // Update the progress bar
                                 val progressBar = view!!.findViewById<ProgressBar>(R.id.progressBar)
 
-                                view!!.findViewById<RadioButton>(R.id.mute).isEnabled = false
+                                view!!.findViewById<CheckBox>(R.id.mute).isEnabled = false
                                 view!!.findViewById<EditText>(R.id.starttime).isEnabled = false
                                 view!!.findViewById<EditText>(R.id.stoptime).isEnabled  = false
                                 view!!.findViewById<Button>(R.id.btn_pobierz).isEnabled  = false
 
                                 view!!.findViewById<FrameLayout>(R.id.overlay).visibility = View.VISIBLE
+//                                view!!.findViewById<BottomNavigationView>(R.id.bottom_navigation).setBackgroundColor(R.color.greymenu)
+
                                 progressBar.visibility = View.VISIBLE
-                                progressBar.progress = percentage
+
+                                view!!.findViewById<TextView>(R.id.progressBarText).visibility = View.VISIBLE
                             }
                             c.close()
 
@@ -317,9 +358,11 @@ class VideoFragment : Fragment() {
                                 override fun onReceive(context: Context, intent: Intent) {
                                     if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == intent.action) {
                                         view!!.findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
+                                        view!!.findViewById<TextView>(R.id.progressBarText).visibility = View.GONE
                                         view!!.findViewById<FrameLayout>(R.id.overlay).visibility = View.GONE
+//                                        view!!.findViewById<BottomNavigationView>(R.id.bottom_navigation).setBackgroundColor(R.color.purple_500)
 
-                                        view!!.findViewById<RadioButton>(R.id.mute).isEnabled = true
+                                        view!!.findViewById<CheckBox>(R.id.mute).isEnabled = true
                                         view!!.findViewById<EditText>(R.id.starttime).isEnabled = true
                                         view!!.findViewById<EditText>(R.id.stoptime).isEnabled  = true
                                         view!!.findViewById<Button>(R.id.btn_pobierz).isEnabled  = true
@@ -332,7 +375,6 @@ class VideoFragment : Fragment() {
                                             val uri = Uri.parse(videoPath)
 
                                             selectedUri = uri
-                                            Log.d(TAG, "CMD: VIDEOPATH Z FUNKCIJ: $selectedUri")
 
                                             // Set the media controller
                                             val mediaController = MediaController(activity)
@@ -341,6 +383,20 @@ class VideoFragment : Fragment() {
                                             videoView1.setMediaController(mediaController)
                                             videoView1.setVideoURI(uri)
                                             videoView1.start()
+                                        }
+                                    } else {
+                                        val downloadManagerId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                                        if (downloadId == downloadManagerId) {
+                                            downloadManager.remove(downloadId)
+
+                                            Toast.makeText(
+                                                this@VideoFragment.activity,
+                                                "Coś poszło nie tak!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+
+                                            val homeFragment = HomeFragment()
+                                            parentFragmentManager.beginTransaction().replace(R.id.fl_wrapper, homeFragment).commit()
                                         }
                                     }
                                 }
